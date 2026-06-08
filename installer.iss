@@ -5,6 +5,7 @@ DefaultDirName={autopf}\AIBOS
 DisableProgramGroupPage=yes
 OutputBaseFilename=AIBOS_Setup
 Compression=lzma2/ultra
+DiskSpanning=yes
 SolidCompression=yes
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
