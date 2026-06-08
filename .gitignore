@@ -1,0 +1,7 @@
+transfers/
+models/*
+import/
+certs/
+data/
+*__pycache__
+.vscode

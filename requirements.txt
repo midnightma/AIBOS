@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pydantic
+PySide6
+cryptography
+llama-cpp-python
+pyinstaller
+requests
