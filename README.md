@@ -31,12 +31,13 @@ There are no central servers. Every installation acts as its own independent for
 ### 1. Prerequisites
 * Python 3.12+
 * An OS with a graphical desktop environment (for PySide6 security popups)
-* Download the AI Model: You **must** download `gemma-4-e4b-q4_k_m.gguf` (or your preferred local model) and place it in the `models/` directory.
+* Download the AI Model: You **must** download `gemma-3-1b-it-Q4_K_M.gguf` (or your preferred local model) and place it in the `models/` directory.
+* [Gemma 3 1‌B Q4_K_M Download Link](https://huggingface.co/unsloth/gemma-3-1b-it-GGUF?show_file_info=gemma-3-1b-it-Q4_K_M.gguf)
 
 ### 2. Installation
 Clone the repository and install the dependencies:
 ```bash
-git clone https://github.com/yourusername/aibos.git
+git clone https://github.com/midnightma/aibos.git
 cd aibos
 python -m venv env
 source env/bin/activate  # On Windows: env\Scripts\activate

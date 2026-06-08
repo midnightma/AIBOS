@@ -35,8 +35,8 @@ if not os.path.exists(POLICY_PATH) and os.path.exists(internal_policy):
     shutil.copy(internal_policy, POLICY_PATH)
 
 # --- SMART MODEL DETECTION ---
-external_model = os.path.join(MODELS_DIR, "gemma-4-e4b-q4_k_m.gguf")
-internal_model = os.path.join(BUNDLED_DIR, "models", "gemma-4-e4b-q4_k_m.gguf")
+external_model = os.path.join(MODELS_DIR, "gemma-3-1b-it-Q4_K_M.gguf")
+internal_model = os.path.join(BUNDLED_DIR, "models", "gemma-3-1b-it-Q4_K_M.gguf")
 
 # If the user explicitly placed a model in the external folder, use that one.
 # Otherwise, seamlessly read the one already packed inside _internal!
