@@ -85,8 +85,8 @@ class UnitManagementView(BaseView):
         self.inp_name = QLineEdit(); self.inp_name.setPlaceholderText("Display Name")
         self.inp_role = QComboBox(); self.inp_role.addItems(["SOURCE", "DESTINATION"])
         self.inp_risk = QSpinBox(); self.inp_risk.setRange(1, 10); self.inp_risk.setValue(4)
-        self.inp_pub_ed = QLineEdit(); self.inp_pub_ed.setPlaceholderText("Remote Ed25519 Public Key (Base64)")
-        self.inp_pub_x = QLineEdit(); self.inp_pub_x.setPlaceholderText("Remote X25519 Public Key (Base64)")
+        self.inp_pub_ed = QLineEdit(); self.inp_pub_ed.setPlaceholderText("Remote Ed25519 Public Key (Leave blank for initial setup)")
+        self.inp_pub_x = QLineEdit(); self.inp_pub_x.setPlaceholderText("Remote X25519 Public Key (Leave blank for initial setup)")
         
         form_layout.addWidget(self.inp_id); form_layout.addWidget(self.inp_name)
         form_layout.addWidget(QLabel("Role & Max Permitted Security Level:")); 

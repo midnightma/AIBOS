@@ -1,6 +1,6 @@
 from PySide6.QtCore import QObject, Signal
 import base64
-from storage.database import get_db_connection, delete_unit, register_unit, save_keys, register_assistant, get_all_assistants
+from storage.database import get_db_connection, delete_unit, register_unit, save_keys, register_assistant, get_all_assistants, get_keys
 from security.crypto_engine import CryptoEngine
 from cryptography.hazmat.primitives import serialization
 from config import LOCAL_NODE_ID
@@ -34,20 +34,34 @@ class UnitManagementViewModel(QObject):
 
     def add_unit(self, unit_id: str, name: str, role: str, max_security: int, remote_pub_ed_b64: str, remote_pub_x_b64: str):
         try:
-            priv_ed, pub_ed = CryptoEngine.generate_ed25519_keypair()
-            priv_x, pub_x = CryptoEngine.generate_x25519_keypair()
+            existing = get_keys(unit_id)
             
-            priv_ed_bytes = priv_ed.private_bytes(encoding=serialization.Encoding.Raw, format=serialization.PrivateFormat.Raw, encryption_algorithm=serialization.NoEncryption())
-            pub_ed_bytes = pub_ed.public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
-            priv_x_bytes = priv_x.private_bytes(encoding=serialization.Encoding.Raw, format=serialization.PrivateFormat.Raw, encryption_algorithm=serialization.NoEncryption())
-            pub_x_bytes = pub_x.public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
+            # FIX: If we already have local keys for this unit, KEEP THEM!
+            if existing and existing.get("local_priv_ed"):
+                priv_ed_bytes = existing["local_priv_ed"]
+                pub_ed_bytes = existing["local_pub_ed"]
+                priv_x_bytes = existing["local_priv_x"]
+                pub_x_bytes = existing["local_pub_x"]
+            else:
+                # Generate new keys only if this is the first time
+                priv_ed, pub_ed = CryptoEngine.generate_ed25519_keypair()
+                priv_x, pub_x = CryptoEngine.generate_x25519_keypair()
+                
+                priv_ed_bytes = priv_ed.private_bytes(encoding=serialization.Encoding.Raw, format=serialization.PrivateFormat.Raw, encryption_algorithm=serialization.NoEncryption())
+                pub_ed_bytes = pub_ed.public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
+                priv_x_bytes = priv_x.private_bytes(encoding=serialization.Encoding.Raw, format=serialization.PrivateFormat.Raw, encryption_algorithm=serialization.NoEncryption())
+                pub_x_bytes = pub_x.public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
+
+            # UX FIX: Allow empty strings for initial setup so user doesn't need dummy keys
+            remote_pub_ed_bytes = base64.b64decode(remote_pub_ed_b64) if remote_pub_ed_b64.strip() else b""
+            remote_pub_x_bytes = base64.b64decode(remote_pub_x_b64) if remote_pub_x_b64.strip() else b""
 
             register_unit(unit_id, name, role, max_security)
             save_keys(unit_id, {
                 "local_priv_ed": priv_ed_bytes, "local_pub_ed": pub_ed_bytes,
-                "remote_pub_ed": base64.b64decode(remote_pub_ed_b64),
+                "remote_pub_ed": remote_pub_ed_bytes,
                 "local_priv_x": priv_x_bytes, "local_pub_x": pub_x_bytes,
-                "remote_pub_x": base64.b64decode(remote_pub_x_b64)
+                "remote_pub_x": remote_pub_x_bytes
             })
             
             local_pub_ed_str = base64.b64encode(pub_ed_bytes).decode('utf-8')
