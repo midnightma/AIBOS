@@ -76,24 +76,28 @@ def run_api():
         log_level="warning"
     )
 
+
 if __name__ == "__main__":
-    # 1. Initialize the Qt Application (Must be in the main thread)
-    qt_app = QApplication(sys.argv)
-    qt_app.setQuitOnLastWindowClosed(False) # Keep running in the background
+    print("Initializing AI BOS Core and Backend API...")
 
-    # 2. Initialize UI Broker for asynchronous cross-thread signaling
-    ui_broker = UIBroker()
+    # 1. Initialize the existing AIBOS Workflow (which loads the AI Model)
+    from core.workflow import AIBOSWorkflow
+    from ui.popups import UIBroker
+    
+    ui_broker = UIBroker() # Required for the background FastAPI to trigger popups
+    api.routes.workflow_instance = AIBOSWorkflow(ui_broker=ui_broker)
 
-    # 3. Initialize the core workflow and inject it into the API router
-    print("Loading AI Model and verifying database. This may take a moment...")
-    workflow_instance = AIBOSWorkflow(ui_broker=ui_broker)
-    api.routes.workflow_instance = workflow_instance
-
-    # 4. Start the FastAPI server in a background daemon thread
+    # 2. Start External Network API in background
     api_thread = threading.Thread(target=run_api, daemon=True)
     api_thread.start()
     
-    print("AI BOS System Initialized. Listening on port 8443 (HTTPS).")
+    print("Backend secure API active.")
+    print("Launching Desktop Management Console...")
 
-    # 5. Start the Qt Event Loop
-    sys.exit(qt_app.exec())
+    # 3. Start the fully integrated Desktop UI Application
+    from ui.app import AIBOSApplication
+    desktop_app = AIBOSApplication(sys.argv)
+    
+    # Map the existing ui_broker signals to the new MainWindow if needed
+    # Run the application event loop (Blocks until Tray -> Exit Securely is clicked)
+    sys.exit(desktop_app.run())
