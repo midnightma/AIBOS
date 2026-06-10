@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QStackedWidget
 from PySide6.QtCore import Qt
-from ui.views import DashboardView, RequestView, LogsView, UnitManagementView, AssistantView
+from ui.translations import translator, tr
+from ui.views import DashboardView, RequestView, LogsView, UnitManagementView, AssistantView, TutorialView
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -8,15 +9,32 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("AI BOS - Secure Mission Console")
         self.resize(1100, 750)
         
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        main_layout = QHBoxLayout(central_widget)
+        # Apply the layout direction globally
+        self.apply_layout_direction()
+        
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        
+        self.build_ui()
+
+    def apply_layout_direction(self):
+        if translator.lang == "fa":
+            self.setLayoutDirection(Qt.RightToLeft)
+        else:
+            self.setLayoutDirection(Qt.LeftToRight)
+
+    def build_ui(self):
+        # Clear existing layout if rebuilding during a language switch
+        if self.central_widget.layout():
+            QWidget().setLayout(self.central_widget.layout())
+            
+        main_layout = QHBoxLayout(self.central_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
         sidebar = QWidget()
         sidebar.setFixedWidth(240)
-        sidebar.setStyleSheet("background-color: #11111b; border-right: 1px solid #313244;")
+        sidebar.setStyleSheet("background-color: #11111b; border-right: 1px solid #313244; border-left: 1px solid #313244;")
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.setContentsMargins(10, 20, 10, 20)
 
@@ -25,26 +43,35 @@ class MainWindow(QMainWindow):
         
         # Initialize ALL Views
         self.view_dashboard = DashboardView()
-        self.view_units = UnitManagementView()       # NEW
-        self.view_assistants = AssistantView()       # NEW
+        self.view_units = UnitManagementView()
+        self.view_assistants = AssistantView()
         self.view_requests = RequestView()
         self.view_logs = LogsView()
+        self.view_tutorial = TutorialView() # NEW
 
-        # Add to stack (Order matters for indexing)
         self.stacked_widget.addWidget(self.view_dashboard)   # 0
         self.stacked_widget.addWidget(self.view_units)       # 1
         self.stacked_widget.addWidget(self.view_assistants)  # 2
         self.stacked_widget.addWidget(self.view_requests)    # 3
         self.stacked_widget.addWidget(self.view_logs)        # 4
+        self.stacked_widget.addWidget(self.view_tutorial)    # 5
 
         # Navigation Buttons
-        self.add_nav_button(sidebar_layout, "📊 Dashboard", 0)
-        self.add_nav_button(sidebar_layout, "🤝 Unit Registry", 1)
-        self.add_nav_button(sidebar_layout, "🤖 AI Routing Assistants", 2)
-        self.add_nav_button(sidebar_layout, "📡 Mission Control", 3)
-        self.add_nav_button(sidebar_layout, "🗄️ Secure Logs", 4)
+        self.add_nav_button(sidebar_layout, tr("nav_dashboard"), 0)
+        self.add_nav_button(sidebar_layout, tr("nav_registry"), 1)
+        self.add_nav_button(sidebar_layout, tr("nav_assistants"), 2)
+        self.add_nav_button(sidebar_layout, tr("nav_mission"), 3)
+        self.add_nav_button(sidebar_layout, tr("nav_logs"), 4)
+        self.add_nav_button(sidebar_layout, tr("nav_tutorial"), 5) # NEW
         
         sidebar_layout.addStretch()
+
+        # Language Toggle Button
+        lang_btn_text = "🌍 Switch to Persian (فارسی)" if translator.lang == "en" else "🌍 تغییر به انگلیسی (English)"
+        btn_lang = QPushButton(lang_btn_text)
+        btn_lang.setStyleSheet("background-color: #45475a; color: white; padding: 10px; border-radius: 4px; font-weight: bold;")
+        btn_lang.clicked.connect(self.toggle_language)
+        sidebar_layout.addWidget(btn_lang)
 
         main_layout.addWidget(sidebar)
         main_layout.addWidget(self.stacked_widget)
@@ -61,7 +88,6 @@ class MainWindow(QMainWindow):
             QPushButton:hover { background-color: #313244; border-radius: 4px; }
         """)
         
-        # When changing tabs, refresh lists just in case
         def on_click():
             self.stacked_widget.setCurrentIndex(index)
             if index == 1: self.view_units.vm.load_units()
@@ -70,6 +96,12 @@ class MainWindow(QMainWindow):
 
         btn.clicked.connect(on_click)
         layout.addWidget(btn)
+
+    def toggle_language(self):
+        new_lang = "fa" if translator.lang == "en" else "en"
+        translator.save_settings(new_lang)
+        self.apply_layout_direction()
+        self.build_ui() # Instantly recreate the UI with new translations and layout direction
 
     def closeEvent(self, event):
         event.ignore()
